@@ -103,7 +103,7 @@ function Lib:Filter(search, default)
 				end
 			end
 			
-			return false
+			return
 		end
 	end
 

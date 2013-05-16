@@ -23,14 +23,6 @@ if not Lib then
 	return
 end
 
-local function useful(a)
-	return a and #a > 0
-end
-
-local function lower(a)
-	return (a or ''):lower()
-end
-
 
 --[[ Parsing ]]--
 
@@ -39,14 +31,13 @@ function Lib:Matches(object, search, filters)
 		self.filters = filters
 		self.object = object
 
-		return self:MatchAll(strsplit(' ', lower(search)))
+		return self:MatchAll(search or '')
 	end
 end
 
-function Lib:MatchAll(...)
-	for i = 1, select('#', ...) do
-		local search = select(i, ...)
-		if not self:MatchOne(strsplit('|', search)) then
+function Lib:MatchAll(search)
+	for phrase in search:lower():gmatch('[^&]+') do
+		if not self:MatchAny(phrase) then
       		return
 		end
 	end
@@ -54,60 +45,67 @@ function Lib:MatchAll(...)
 	return true
 end
 
-function Lib:MatchOne(...)
-	for i = 1, select('#', ...) do
-		local search = select(i, ...)
-		if useful(search) and self:Match(search) then
+function Lib:MatchAny(search)
+	for phrase in search:gmatch('[^|]+') do
+		if self:Match(phrase) then
         	return true
 		end
 	end
 end
 
 function Lib:Match(search)
-	local negated = search:match('^[!~][%s]*(.+)$')
-	if negated then
-		return not self:Filter(negated)
-	end
-
-	return self:Filter(search, true)
-end
-
-
---[[ Filtering ]]--
-
-function Lib:Filter(search, default)
-	local tag, rest = search:match('^[%s]*(%w+):(.*)$')
+	local tag, rest = search:match('^%s*(%S+):(.*)$')
 	if tag then
 		tag = '^' .. tag
 		search = rest
 	end
 
-	local operator, search = search:match('^[%s]*([%>%<%=]*)[%s]*(.-)[%s]*$')
-	if useful(search) then
-		operator = useful(operator) and operator
+	local words = search:gmatch('%S+')
+	for word in words do
+		local negate, operator = 1
 
-		if tag then
-			for _, filter in pairs(self.filters) do
-				if filter.tags then
-					for _, value in pairs(filter.tags) do
-						if value:find(tag) then
-							return self:UseFilter(filter, operator, search)
-						end
-					end
-				end
-			end
-		else
-			for _, filter in pairs(self.filters) do
-				if not filter.onlyTags and self:UseFilter(filter, operator, search) then
-					return true
-				end
-			end
-			
+		if word:find('^not?$') or word:find('^[!~]=*$') then
+			negate = -1
+			word = words() or ''
+		end
+
+		if word:find('^=*[<>]=*$') then
+			operator = word
+			word = words()
+		end
+
+		local result = self:Filter(tag, operator, word) and 1 or -1
+		if result * negate ~= 1 then
 			return
 		end
 	end
 
-	return default
+	return true
+end
+
+
+--[[ Filtering ]]--
+
+function Lib:Filter(tag, operator, search)
+	if not search then
+		return true
+	end
+
+	if tag then
+		for _, filter in pairs(self.filters) do
+			for _, value in pairs(filter.tags or {}) do
+				if value:find(tag) then
+					return self:UseFilter(filter, operator, search)
+				end
+			end
+		end
+	else
+		for _, filter in pairs(self.filters) do
+			if not filter.onlyTags and self:UseFilter(filter, operator, search) then
+				return true
+			end
+		end
+	end
 end
 
 function Lib:UseFilter(filter, operator, search)
@@ -130,20 +128,22 @@ function Lib:Find(search, ...)
 end
 
 function Lib:Compare(op, a, b)
-	if op == '<=' then
-		return a <= b
-	end
+	if op then
+		if op:find('<') then
+			 if op:find('=') then
+			 	return a <= b
+			 end
 
-	if op == '<' then
-		return a < b
-	end
+			 return a < b
+		end
 
-	if op == '>' then
-		return a > b
-	end
+		if op:find('>')then
+			if op:find('=') then
+			 	return a >= b
+			end
 
-	if op == '>=' then
-		return a >= b
+			return a > b
+		end
 	end
 
 	return a == b

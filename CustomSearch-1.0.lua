@@ -23,6 +23,17 @@ if not Lib then
 	return
 end
 
+local NOT
+do
+	local no = {
+		enUS = 'not?',
+		ptBR = 'n[ãa]o',
+		frFR = 'pas'
+	}
+
+	NOT = '^'..(no[GetLocale()] or NO)..'$'
+end
+
 
 --[[ Parsing ]]--
 
@@ -64,7 +75,7 @@ function Lib:Match(search)
 	for word in words do
 		local negate, operator = 1
 
-		if word:find('^not?$') or word:find('^[!~]=*$') then
+		if word:find(NOT) or word:find('^[!~]=*$') then
 			negate = -1
 			word = words() or ''
 		end
@@ -150,3 +161,4 @@ function Lib:Compare(op, a, b)
 end
 
 setmetatable(Lib, {__call = Lib.Matches})
+return Lib

@@ -23,17 +23,6 @@ if not Lib then
 	return
 end
 
-local NOT
-do
-	local no = {
-		enUS = 'not?',
-		ptBR = 'n[ãa]o',
-		frFR = 'pas'
-	}
-
-	NOT = '^'..(no[GetLocale()] or NO)..'$'
-end
-
 
 --[[ Parsing ]]--
 
@@ -47,7 +36,7 @@ function Lib:Matches(object, search, filters)
 end
 
 function Lib:MatchAll(search)
-	for phrase in search:lower():gmatch('[^&]+') do
+	for phrase in self:Clean(search):gmatch('[^&]+') do
 		if not self:MatchAny(phrase) then
       		return
 		end
@@ -75,7 +64,7 @@ function Lib:Match(search)
 	for word in words do
 		local negate, operator = 1
 
-		if word:find(NOT) or word:find('^[!~]=*$') then
+		if word:find(self.NOT_MATCH) or word:find('^[!~]=*$') then
 			negate = -1
 			word = words() or ''
 		end
@@ -132,10 +121,20 @@ end
 function Lib:Find(search, ...)
 	for i = 1, select('#', ...) do
 		local text = select(i, ...)
-		if text and text:lower():find(search) then
+		if text and self:Clean(text):find(search) then
 			return true
 		end
 	end
+end
+
+function Lib:Clean(string)
+	string = string:lower()
+
+	for accent, char in pairs(self.ACCENTS) do
+		string = string:gsub(accent, char)
+	end
+
+	return string
 end
 
 function Lib:Compare(op, a, b)
@@ -160,5 +159,31 @@ function Lib:Compare(op, a, b)
 	return a == b
 end
 
-setmetatable(Lib, {__call = Lib.Matches})
+
+--[[ Localization ]]--
+
+do
+	local no = {
+		enUS = 'Not',
+		frFR = 'Pas'
+	}
+
+	local accents = {
+		a = {'à','â','ã','å'},
+		e = {'è','é','ê','â','ë'},
+		o = {'ó','ò','ô','õ'}
+	}
+
+	Lib.ACCENTS = {}
+	for char, accents in pairs(accents) do
+		for _, accent in ipairs(accents) do
+			Lib.ACCENTS[accent] = char
+		end
+	end
+
+	Lib.NOT = no[GetLocale()] or NO
+	Lib.NOT_MATCH = '^' .. Lib:Clean(Lib.NOT) .. '$'
+	setmetatable(Lib, {__call = Lib.Matches})
+end
+
 return Lib

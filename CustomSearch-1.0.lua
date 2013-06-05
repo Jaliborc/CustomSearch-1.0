@@ -1,6 +1,6 @@
 --[[
 Copyright 2013 João Cardoso
-LibCustomSearch is distributed under the terms of the GNU General Public License (Version 3).
+CustomSearch is distributed under the terms of the GNU General Public License (Version 3).
 As a special exception, the copyright holders of this library give you permission to embed it
 with independent modules to produce an addon, regardless of the license terms of these
 independent modules, and to copy and distribute the resulting software under terms of your
@@ -15,7 +15,7 @@ GNU General Public License for more details.
 You should have received a copy of the GNU General Public License
 along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 
-This file is part of LibCustomSearch.
+This file is part of CustomSearch.
 --]]
 
 local Lib = LibStub:NewLibrary('CustomSearch-1.0', 1)

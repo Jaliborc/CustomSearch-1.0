@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 1)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 2)
 if not Lib then
 	return
 end

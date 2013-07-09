@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 3)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 4)
 if not Lib then
 	return
 end
@@ -178,7 +178,10 @@ do
 	local accents = {
 		a = {'à','â','ã','å'},
 		e = {'è','é','ê','ê','ë'},
-		o = {'ó','ò','ô','õ'}
+		i = {'ì', 'í', 'î', 'ï'},
+		o = {'ó','ò','ô','õ'},
+		u = {'ù', 'ú', 'û', 'ü'},
+		c = {'ç'}, n = {'ñ'}
 	}
 
 	Lib.ACCENTS = {}

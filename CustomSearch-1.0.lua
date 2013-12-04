@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 4)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 5)
 if not Lib then
 	return
 end
@@ -174,7 +174,7 @@ end
 --[[ Localization ]]--
 
 do
-	local no = {enUS = 'Not', frFR = 'Pas'}
+	local no = {enUS = 'Not', frFR = 'Pas', deDE = 'Nicht'}
 	local accents = {
 		a = {'à','â','ã','å'},
 		e = {'è','é','ê','ê','ë'},

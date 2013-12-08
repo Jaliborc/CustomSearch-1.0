@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 5)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 6)
 if not Lib then
 	return
 end
@@ -72,16 +72,18 @@ function Lib:Match(search)
 			end
 
 		else
-			local negate, operator = 1
-
-			if word == self.NOT_MATCH or word:find('^[!~]=*$') then
+			local negate, rest = word:match('^([!~]=*)(.*)$')
+			if negate or word == self.NOT_MATCH then
+				word = rest or word
+				word = word ~= '' and word or words()
 				negate = -1
-				word = words() or ''
+			else
+				negate = 1
 			end
 
-			if word:find('^=*[<>]=*$') then
-				operator = word
-				word = words()
+			local operator, rest = word:match('^(=*[<>]=*)(.*)$')
+			if operator then
+				word = rest ~= '' and rest or words()
 			end
 
 			local result = self:Filter(tag, operator, word) and 1 or -1

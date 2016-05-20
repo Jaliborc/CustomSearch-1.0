@@ -18,9 +18,9 @@ For an object to be a filter, it must implement the following fields:
 
 |Name|Description|
 |:--|:--|
-| tags | |
-| canSearch | |
-| match | |
+| :canSearch(operator, search) | Returns wether the filter can process this query. If not _.match_ will not be called and this filter will not be considered for the query.  |
+| :match(article, operator, search) | Returns wether this filter approves the _article_ for a given _search_ query. |
+| .tags | Optional. Array of identifiers that can be placed at the beggining of a _search_ query to perform a _Match_ using only this filter. |
 
 ### Examples
     local Lib = LibStub('CustomSearch-1.0')
@@ -40,8 +40,8 @@ For an object to be a filter, it must implement the following fields:
           return true
         end,
         
-        match = function(self, object, operator, search)
-          return Lib:Find(object, 'banana')
+        match = function(self, article, operator, search)
+          return Lib:Find(article, 'banana')
         end
       },
       
@@ -52,7 +52,7 @@ For an object to be a filter, it must implement the following fields:
           return not operator
         end,
         
-        match = function(self, object, operator, search)
+        match = function(self, article, operator, search)
           return Lib:Find(search, 'apple')
         end
       }

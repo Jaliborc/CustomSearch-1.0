@@ -5,22 +5,22 @@ non ascii character support, logical operators and user criteria selection.
 ### API Overview
 |Name|Description|
 |:--|:--|
-| :Matches(article, search, filters) | Returns wether the given _article_ matches the _search_ query using the _filters_ structure as the criteria. |
-| :Find(search, field1, field2, ...) | Returns wether the _search_ string is present on any of the string _fields_ provided.  |
-| :Compare(operator, a, b) | Returns an inequality operation between _a_ and _b_, where _operator_ is the string representation of the operation. |
+| :Matches(article, search, filters) | Returns wether the given `article` matches the `search` query using the `filters` structure as the criteria. |
+| :Find(search, field1, field2, ...) | Returns wether the `search` string is present on any of the string `fields` provided.  |
+| :Compare(operator, a, b) | Returns an inequality operation between `a` and `b`, where `operator` is the string representation of the operation. |
 
 ### Filters Specification
-The _filters_ data structure allows you to easly build a search engine of your own.
-_filters_ is a set of filter objects. Each filter is akin to an independent criteria of the engine: 
-if any filter approves the _article_ for a given _search_ query, the _article_ is approved.
+The `filters` data structure allows you to easly build a search engine of your own.
+`filters` is a set of filter objects. Each filter is akin to an independent criteria of the engine: 
+if any filter approves the `article` for a given `search` query, the `article` is approved.
 
 For an object to be a filter, it must implement the following fields:
 
 |Name|Description|
 |:--|:--|
-| :canSearch(operator, search) | Returns wether the filter can process this query. If not _.match_ will not be called and this filter will not be considered for the query.  |
-| :match(article, operator, search) | Returns wether this filter approves the _article_ for a given _search_ query. |
-| .tags | Optional. Array of identifiers that can be placed at the beggining of a _search_ query to perform a _Match_ using only this filter. |
+| :canSearch(operator, search) | Returns wether the filter can process this query. If not `.match` will not be called and this filter will not be considered for the query.  |
+| :match(article, operator, search) | Returns wether this filter approves the `article` for a given `search` query. |
+| .tags | Optional. Array of identifiers that can be placed at the beggining of a `search` query to perform a `:Match` using only this filter. |
 
 ### Examples
     local Lib = LibStub('CustomSearch-1.0')

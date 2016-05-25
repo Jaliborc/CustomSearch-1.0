@@ -18,8 +18,8 @@ For an object to be a filter, it must implement the following fields:
 
 |Name|Description|
 |:--|:--|
-| :canSearch(operator, search) | Returns wether the filter can process this query. If not `.match` will not be called and this filter will not be considered for the query.  |
-| :match(article, operator, search) | Returns wether this filter approves the `article` for a given `search` query. |
+| :canSearch(operator, search, article) | Returns wether the filter can process this query. If not `.match` will not be called and this filter will not be considered for the query. Can return any number of arguments. |
+| :match(article, operator, data1, data2, ...) | Returns wether this filter approves the `article` for a given query. 'data1', 'data2', etc are the return arguments of :canSearch. |
 | .tags | Optional. Array of identifiers that can be placed at the beggining of a `search` query to perform a `:Match` using only this filter. |
 
 ### Examples
@@ -49,7 +49,9 @@ For an object to be a filter, it must implement the following fields:
         tags = {'a', 'app'},
         
         canSearch = function(self, operator, search)
-          return not operator
+          if not operator then
+            return search
+          end
         end,
         
         match = function(self, article, operator, search)

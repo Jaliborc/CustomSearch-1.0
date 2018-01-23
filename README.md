@@ -1,4 +1,4 @@
-# CustomSearch-1.0
+# CustomSearch-1.0 :mag_right:
 Framework for building search engines in lua. Handles most of the heavy work for you, such as concept separation,
 non ascii character support, logical operators and user criteria selection.
 

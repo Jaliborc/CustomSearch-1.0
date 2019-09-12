@@ -13,5 +13,5 @@ jobs:
       - uses: jaliborc/action-general-autotag@master
         with:
           GITHUB_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-          source_file: "LibItemCache-2.0.lua"
+          source_file: "CustomSearch-1.0.lua"
           extraction_regex: "LibStub:NewLibrary\\(['\\s]+CustomSearch-1.0['\\s]+,\\s*(\\d+)\\)"

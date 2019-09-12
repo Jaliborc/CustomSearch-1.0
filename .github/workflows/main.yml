@@ -2,6 +2,8 @@ name: tag
 
 on:
   push:
+    paths:
+      - CustomSearch-1.0.lua
     branches:
       - master
 

@@ -1,4 +1,8 @@
 # CustomSearch-1.0 :mag_right:
+[![Patreon](http://img.shields.io/badge/news%20&%20rewards-patreon-ff4d42)](https://www.patreon.com/jaliborc)
+[![Paypal](http://img.shields.io/badge/donate-paypal-1d3fe5)](https://www.paypal.me/jaliborc)
+[![Discord](http://img.shields.io/badge/discuss-discord-5865F2)](https://bit.ly/discord-jaliborc)  
+
 Framework for building search engines in lua. Handles most of the heavy work for you, such as concept separation,
 non ascii character support, logical operators and user criteria selection.
 
@@ -67,3 +71,5 @@ For an object to be a filter, it must implement the following fields:
     Lib:Match('', 'b:Apple', Filters) -- false
     Lib:Match('', 'a:Apple', Filters) -- true
     
+### :warning: Reminder!
+If you use this library, please list it as one of your dependencies in the CurseForge admin system. It's a big help! :+1:

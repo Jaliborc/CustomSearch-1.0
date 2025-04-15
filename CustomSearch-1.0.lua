@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 10)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 11)
 if not Lib then return end
 local None = {}
 
@@ -30,12 +30,12 @@ function Lib:Matches(object, search, filters)
 		self.filters = filters
 		self.object = object
 
-		return self:MatchAll(search or '')
+		return self:MatchAll(' ' .. self:Clean(search or '') .. ' ')
 	end
 end
 
 function Lib:MatchAll(search)
-	for phrase in self:Clean(search):gmatch('[^&]+') do
+	for phrase in search:gsub(self.AND, '&'):gmatch('[^&]+') do
 		if not self:MatchAny(phrase) then
       		return
 		end
@@ -45,7 +45,7 @@ function Lib:MatchAll(search)
 end
 
 function Lib:MatchAny(search)
-	for phrase in search:gmatch('[^|]+') do
+	for phrase in search:gsub(self.OR, '|'):gmatch('[^|]+') do
 		if self:Match(phrase) then
         	return true
 		end
@@ -60,38 +60,27 @@ function Lib:Match(search)
 	end
 
 	local words = search:gmatch('%S+')
-	local failed
-
 	for word in words do
-		if word == self.OR then
-			if failed then
-				failed = false
-			else
-				break
-			end
-
+		local negate, rest = word:match('^([!~]=*)(.*)$')
+		if negate or word == self.NOT then
+			word = rest and rest ~= '' and rest or words() or ''
+			negate = -1
 		else
-			local negate, rest = word:match('^([!~]=*)(.*)$')
-			if negate or word == self.NOT_MATCH then
-				word = rest and rest ~= '' and rest or words() or ''
-				negate = -1
-			else
-				negate = 1
-			end
+			negate = 1
+		end
 
-			local operator, rest = word:match('^(=*[<>]=*)(.*)$')
-			if operator then
-				word = rest ~= '' and rest or words()
-			end
+		local operator, rest = word:match('^(=*[<>]=*)(.*)$')
+		if operator then
+			word = rest ~= '' and rest or words()
+		end
 
-			local result = self:Filter(tag, operator, word) and 1 or -1
-			if result * negate ~= 1 then
-				failed = true
-			end
+		local result = self:Filter(tag, operator, word) and 1 or -1
+		if result * negate ~= 1 then
+			return false
 		end
 	end
 
-	return not failed
+	return true
 end
 
 
@@ -159,7 +148,7 @@ function Lib:Compare(op, a, b)
 			 return a < b
 		end
 
-		if op:find('>')then
+		if op:find('>') then
 			if op:find('=') then
 			 	return a >= b
 			end
@@ -192,8 +181,8 @@ do
 		end
 	end
 
-	Lib.OR = Lib:Clean(JUST_OR)
-	Lib.NOT = no[GetLocale()] or NO
-	Lib.NOT_MATCH = Lib:Clean(Lib.NOT)
+	Lib.AND = '%s+'.. Lib:Clean(QUEST_LOGIC_AND) .. '%s+'
+	Lib.OR = '%s+'.. Lib:Clean(QUEST_LOGIC_OR) ..'%s+'
+	Lib.NOT = Lib:Clean(no[GetLocale()] or NO)
 	setmetatable(Lib, {__call = Lib.Matches})
 end

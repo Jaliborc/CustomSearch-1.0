@@ -20,6 +20,8 @@ This file is part of CustomSearch.
 
 local Lib = LibStub:NewLibrary('CustomSearch-1.0', 11)
 if not Lib then return end
+
+local pairs, select = pairs, select
 local None = {}
 
 

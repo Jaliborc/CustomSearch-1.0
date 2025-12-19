@@ -18,14 +18,104 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 11)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 12)
 if not Lib then return end
 
-local pairs, select = pairs, select
 local None = {}
+local pairs, select, format, tinsert, tconcat = pairs, select, format, tinsert, table.concat
+local join = function(words, sep)
+	if #words > 1 then
+		return '(' .. tconcat(words, sep) .. ')'
+	end
+	return words[1]
+end
 
 
---[[ Parsing ]]--
+--[[ Compilation Mode ]]--
+
+function Lib:Compile(search, filters)
+	self.filters = filters
+
+	local code = format([[
+		local self, filters = ...
+		return function(object)
+			if object then
+				self.object = object
+				return %s
+			end
+		end]], self:CompileAND(' ' .. self:Clean(search or '') .. ' ') or 'true')
+
+	return loadstring(code)(self, filters)
+end
+
+function Lib:CompileAND(search)
+	local chunks = {}
+	for phrase in search:gsub(self.AND, '&'):gmatch('[^&]+') do
+		tinsert(chunks, self:CompileOR(phrase))
+	end
+	return #chunks > 0 and tconcat(chunks, ' and ')
+end
+
+function Lib:CompileOR(search)
+	local chunks = {}
+	for phrase in search:gsub(self.OR, '|'):gmatch('[^|]+') do
+		tinsert(chunks, self:CompileWords(phrase))
+	end
+
+	return join(chunks, ' or ')
+end
+
+function Lib:CompileWords(search)
+	local tag, rest = search:match('^%s*(%S+):(.*)$')
+	if tag then
+		tag = '^' .. tag
+		search = rest
+	end
+
+	local chunks = {}
+	local words = search:gmatch('%S+')
+	for word in words do
+		local negate, rest = word:match('^([!~]=*)(.*)$')
+		if negate or word == self.NOT then
+			word = rest and rest ~= '' and rest or words() or ''
+		end
+
+		local operator, rest = word:match('^(=*[<>]=*)(.*)$')
+		if operator then
+			word = rest ~= '' and rest or words()
+			operator = format('%q', operator)
+		end
+
+		local result = self:CompileFilters(word, tag, operator or 'nil')
+		if result then
+			tinsert(chunks, (negate and 'not ' or '') .. result)
+		end
+	end
+
+	return join(chunks, ' and ')
+end
+
+function Lib:CompileFilters(word, tag, operator)
+	if word then
+		local chunks = {}
+		for id, filter in pairs(self.filters) do
+			if tag then
+				for _, value in pairs(filter.tags or None) do
+					if value:find(tag) then
+						return format('self:UseFilter(filters.%s, %s, %q)', id, operator, word)
+					end
+				end
+			elseif not filter.onlyTags then
+				tinsert(chunks, format('self:UseFilter(filters.%s, %s, %q)', id, operator, word))
+			end
+		end
+
+		return join(chunks, ' or ')
+	end
+end
+
+
+--[[ Parsing Mode ]]--
 
 function Lib:Matches(object, search, filters)
 	if object then
@@ -39,7 +129,7 @@ end
 function Lib:MatchAll(search)
 	for phrase in search:gsub(self.AND, '&'):gmatch('[^&]+') do
 		if not self:MatchAny(phrase) then
-      		return
+			return
 		end
 	end
 
@@ -49,7 +139,7 @@ end
 function Lib:MatchAny(search)
 	for phrase in search:gsub(self.OR, '|'):gmatch('[^|]+') do
 		if self:Match(phrase) then
-        	return true
+			return true
 		end
 	end
 end
@@ -85,9 +175,6 @@ function Lib:Match(search)
 	return true
 end
 
-
---[[ Filtering ]]--
-
 function Lib:Filter(tag, operator, search)
 	if not search then
 		return true
@@ -110,15 +197,15 @@ function Lib:Filter(tag, operator, search)
 	end
 end
 
+
+--[[ Utilities ]]--
+
 function Lib:UseFilter(filter, operator, search)
 	local data = {filter:canSearch(operator, search, self.object)}
 	if data[1] then
 		return filter:match(self.object, operator, unpack(data))
 	end
 end
-
-
---[[ Utilities ]]--
 
 function Lib:Find(search, ...)
 	for i = 1, select('#', ...) do
@@ -143,16 +230,16 @@ end
 function Lib:Compare(op, a, b)
 	if op then
 		if op:find('<') then
-			 if op:find('=') then
-			 	return a <= b
-			 end
+			if op:find('=') then
+				return a <= b
+			end
 
-			 return a < b
+			return a < b
 		end
 
 		if op:find('>') then
 			if op:find('=') then
-			 	return a >= b
+				return a >= b
 			end
 
 			return a > b

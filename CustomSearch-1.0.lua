@@ -68,7 +68,6 @@ end
 function Lib:CompileWords(search)
 	local tag, rest = search:match('^%s*(%S+):(.*)$')
 	if tag then
-		tag = '^' .. tag
 		search = rest
 	end
 
@@ -101,7 +100,7 @@ function Lib:CompileFilters(word, tag, operator)
 		for id, filter in pairs(self.filters) do
 			if tag then
 				for _, value in pairs(filter.tags or None) do
-					if value:find(tag, 1, true) then
+					if value:sub(1, #tag) == tag then
 						return format('self:UseFilter(filters.%s, %s, %q)', id, operator, word)
 					end
 				end
@@ -147,10 +146,9 @@ end
 function Lib:Match(search)
 	local tag, rest = search:match('^%s*(%S+):(.*)$')
 	if tag then
-		tag = '^' .. tag
 		search = rest
 	end
-
+	
 	local words = search:gmatch('%S+')
 	for word in words do
 		local negate, rest = word:match('^([!~]=*)(.*)$')
@@ -180,19 +178,15 @@ function Lib:Filter(tag, operator, search)
 		return true
 	end
 
-	if tag then
-		for _, filter in pairs(self.filters) do
+	for _, filter in pairs(self.filters) do
+		if tag then
 			for _, value in pairs(filter.tags or None) do
-				if value:find(tag, 1, true) then
+				if value:sub(1, #tag) == tag then
 					return self:UseFilter(filter, operator, search)
 				end
 			end
-		end
-	else
-		for _, filter in pairs(self.filters) do
-			if not filter.onlyTags and self:UseFilter(filter, operator, search) then
-				return true
-			end
+		elseif not filter.onlyTags and self:UseFilter(filter, operator, search) then
+			return true
 		end
 	end
 end

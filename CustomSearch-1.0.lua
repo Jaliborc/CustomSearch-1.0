@@ -101,7 +101,7 @@ function Lib:CompileFilters(word, tag, operator)
 		for id, filter in pairs(self.filters) do
 			if tag then
 				for _, value in pairs(filter.tags or None) do
-					if value:find(tag) then
+					if value:find(tag, 1, true) then
 						return format('self:UseFilter(filters.%s, %s, %q)', id, operator, word)
 					end
 				end
@@ -183,7 +183,7 @@ function Lib:Filter(tag, operator, search)
 	if tag then
 		for _, filter in pairs(self.filters) do
 			for _, value in pairs(filter.tags or None) do
-				if value:find(tag) then
+				if value:find(tag, 1, true) then
 					return self:UseFilter(filter, operator, search)
 				end
 			end
@@ -210,43 +210,32 @@ end
 function Lib:Find(search, ...)
 	for i = 1, select('#', ...) do
 		local text = select(i, ...)
-		if text and self:Clean(text):find(search) then
+		if text and self:Clean(text):find(search, 1, true) then
 			return true
 		end
 	end
 end
 
+function Lib:FindOne(search, text)
+	return text and self:Clean(text):find(search, 1, true)
+end
+
 function Lib:Clean(string)
-	string = string:lower()
-	string = string:gsub('[%(%)%.%%%+%-%*%?%[%]%^%$]', function(c) return '%'..c end)
-
-	for accent, char in pairs(self.ACCENTS) do
-		string = string:gsub(accent, char)
-	end
-
-	return string
+	return string:lower():gsub('[%z\1-\127\194-\244][\128-\191]', self.ACCENTS):gsub('([%^%$%(%)%%%.%[%]%*%+%-%?])', '%%%1')
 end
 
 function Lib:Compare(op, a, b)
-	if op then
-		if op:find('<') then
-			if op:find('=') then
-				return a <= b
-			end
-
-			return a < b
-		end
-
-		if op:find('>') then
-			if op:find('=') then
-				return a >= b
-			end
-
-			return a > b
-		end
-	end
-
-	return a == b
+    if op == '<' then
+        return a < b
+    elseif op == '<=' or op == '=<' then
+        return a <= b
+    elseif op == '>' then
+        return a > b
+    elseif op == '>=' or op == '=>' then
+        return a >= b
+    else
+        return a == b
+    end
 end
 
 
@@ -255,7 +244,7 @@ end
 do
 	local no = {enUS = 'Not', frFR = 'Pas', deDE = 'Nicht'}
 	local accents = {
-		a = {'à','â','ã','å'},
+		a = {'à','á','â','ã','å'},
 		e = {'è','é','ê','ê','ë'},
 		i = {'ì', 'í', 'î', 'ï'},
 		o = {'ó','ò','ô','õ'},

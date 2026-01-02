@@ -18,10 +18,12 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 12)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 13)
 if not Lib then return end
 
+local Cache = setmetatable({}, {__mode = 'k'})
 local None = {}
+
 local pairs, select, format, tinsert, tconcat = pairs, select, format, tinsert, table.concat
 local join = function(words, sep)
 	if #words > 1 then
@@ -31,7 +33,25 @@ local join = function(words, sep)
 end
 
 
---[[ Compilation Mode ]]--
+--[[ Compiler ]]--
+
+function Lib:Matches(object, search, filters)
+	if object then
+		local cache = Cache[filters]
+		if not cache then
+			cache = setmetatable({}, {__mode = 'v'})
+			Cache[filters] = cache
+		end
+
+		local func = cache[search]
+		if not func then
+			func = self:Compile(search, filters)
+			cache[search] = func
+		end
+
+		return func(object)
+	end
+end
 
 function Lib:Compile(search, filters)
 	self.filters = filters
@@ -77,6 +97,7 @@ function Lib:CompileWords(search)
 		local negate, rest = word:match('^([!~]=*)(.*)$')
 		if negate or word == self.NOT then
 			word = rest and rest ~= '' and rest or words() or ''
+			negate = true
 		end
 
 		local operator, rest = word:match('^(=*[<>]=*)(.*)$')
@@ -114,16 +135,7 @@ function Lib:CompileFilters(word, tag, operator)
 end
 
 
---[[ Parsing Mode ]]--
-
-function Lib:Matches(object, search, filters)
-	if object then
-		self.filters = filters
-		self.object = object
-
-		return self:MatchAll(' ' .. self:Clean(search or '') .. ' ')
-	end
-end
+--[[ Deprecated ]]--
 
 function Lib:MatchAll(search)
 	for phrase in search:gsub(self.AND, '&'):gmatch('[^&]+') do

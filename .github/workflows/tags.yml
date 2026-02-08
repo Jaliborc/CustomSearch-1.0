@@ -43,14 +43,27 @@ jobs:
 
       - name: Create and Push Tag
         run: |
-          TAG_NAME="${{ steps.get_version.outputs.version }}"
+          VERSION="${{ steps.get_version.outputs.version }}"
           
           git config user.name "github-actions[bot]"
           git config user.email "github-actions[bot]@users.noreply.github.com"
           
-          # Only tag and push if the tag doesn't already exist
+          # 1. Check if the clean version tag already exists
+          if git rev-parse "$VERSION" >/dev/null 2>&1; then
+            echo "Tag $VERSION already exists. Appending commit SHA."
+            # 2. If it exists, create a unique tag using the short SHA
+            SHORT_SHA=$(git rev-parse --short HEAD)
+            TAG_NAME="${VERSION}-${SHORT_SHA}"
+          else
+            # 3. If it's a fresh version, use the clean tag
+            TAG_NAME="$VERSION"
+          fi
+
+          echo "Final Tag Name: $TAG_NAME"
+
+          # Final check to prevent errors if the SHA-suffix tag somehow exists
           if git rev-parse "$TAG_NAME" >/dev/null 2>&1; then
-            echo "Tag $TAG_NAME already exists. Skipping push."
+            echo "Tag $TAG_NAME already exists (exact commit already tagged). Skipping."
           else
             git tag "$TAG_NAME"
             git push origin "$TAG_NAME"

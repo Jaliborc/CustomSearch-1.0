@@ -25,6 +25,7 @@ local Cache = setmetatable({}, {__mode = 'k'})
 local None = {}
 
 local pairs, select, format, tinsert, tconcat = pairs, select, format, tinsert, table.concat
+local yup = function(v) return v and true end
 local join = function(words, sep)
 	if #words > 1 then
 		return '(' .. tconcat(words, sep) .. ')'
@@ -56,16 +57,20 @@ end
 function Lib:Compile(search, filters)
 	self.filters = filters
 
-	local code = format([[
-		local self, filters = ...
-		return function(object)
-			if object then
-				self.object = object
-				return %s
-			end
-		end]], self:CompileAND(' ' .. self:Clean(search or '') .. ' ') or 'true')
+	local condition = self:CompileAND(' ' .. self:Clean(search or '') .. ' ')
+	if condition then
+		local code = format([[
+			local self, filters = ...
+			return function(object)
+				if object then
+					self.object = object
+					return %s
+				end
+			end]], condition)
 
-	return loadstring(code)(self, filters)
+		return loadstring(code)(self, filters)
+	end
+	return yup
 end
 
 function Lib:CompileAND(search)

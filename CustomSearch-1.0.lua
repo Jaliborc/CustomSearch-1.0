@@ -18,7 +18,7 @@ along with the library. If not, see <http://www.gnu.org/licenses/gpl-3.0.txt>.
 This file is part of CustomSearch.
 --]]
 
-local Lib = LibStub:NewLibrary('CustomSearch-1.0', 13)
+local Lib = LibStub:NewLibrary('CustomSearch-1.0', 14)
 if not Lib then return end
 
 local Cache = setmetatable({}, {__mode = 'k'})
@@ -43,10 +43,10 @@ function Lib:Matches(object, search, filters)
 			Cache[filters] = cache
 		end
 
-		local func = cache[search]
+		local func = cache[search or '']
 		if not func then
 			func = self:Compile(search, filters)
-			cache[search] = func
+			cache[search or ''] = func
 		end
 
 		return func(object)

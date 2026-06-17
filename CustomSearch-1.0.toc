@@ -1,6 +1,6 @@
 ## Title: CustomSearch
 ## Notes: A framework for building search engines in Lua, highly optimized using JIT compilation.
-## Interface: 120005, 50503, 40402, 30404, 20505, 11508
+## Interface: 120007, 50504, 40402, 30404, 20505, 11508
 ## Author: Jaliborc (João Cardoso)
 ## Category: Libraries
 ## Dependencies: LibStub
